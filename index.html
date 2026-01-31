@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris 3D - Three.js - Alfredo Acosta</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        #game-canvas {
+            display: block;
+            box-shadow: 0 0 50px rgba(76, 175, 80, 0.3);
+        }
+        
+        #hud {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            min-width: 220px;
+            border: 2px solid rgba(76, 175, 80, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        #hud h2 {
+            color: #4caf50;
+            margin-bottom: 15px;
+            font-size: 24px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        #hud .stat {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #hud .stat span {
+            font-weight: bold;
+            color: #4fc3f7;
+            font-size: 20px;
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 320px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        #controls h3 {
+            margin-bottom: 12px;
+            color: #4fc3f7;
+            font-size: 16px;
+        }
+        
+        #controls .control {
+            margin: 6px 0;
+            line-height: 1.4;
+        }
+        
+        #controls .control strong {
+            color: #4caf50;
+            display: inline-block;
+            min-width: 100px;
+        }
+        
+        #message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            font-size: 28px;
+            display: none;
+            text-align: center;
+            border: 3px solid #4caf50;
+            box-shadow: 0 0 50px rgba(76, 175, 80, 0.5);
+            z-index: 1000;
+        }
+        
+        #message.show { display: block; }
+        
+        #message-text {
+            line-height: 1.6;
+        }
+        
+        .preview {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .preview h3 {
+            color: #4fc3f7;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        #preview-canvas {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .game-over {
+            color: #f44336 !important;
+        }
+        
+        #high-scores {
+            position: fixed;
+            top: 280px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            min-width: 220px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        #high-scores h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        #high-scores .score-entry {
+            margin: 8px 0;
+            padding: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        #high-scores .score-entry:last-child {
+            border-bottom: none;
+        }
+        
+        #high-scores .rank {
+            color: #ffd700;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        #high-scores .score-value {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="game-canvas"></canvas>
+    </div>
+    
+    <div class="preview">
+        <h3>Siguiente Pieza</h3>
+        <canvas id="preview-canvas" width="140" height="140"></canvas>
+    </div>
+    
+    <div id="hud">
+        <h2>TETRIS 3D</h2>
+        <div class="stat">Puntaje: <span id="score">0</span></div>
+        <div class="stat">Nivel: <span id="level">1</span></div>
+        <div class="stat">Lineas: <span id="lines">0</span></div>
+        <div class="stat">Piezas: <span id="pieces">0</span></div>
+    </div>
+    
+    <div id="high-scores">
+        <h3>Mejores Puntajes</h3>
+        <div id="scores-list"></div>
+    </div>
+    
+    <div id="controls">
+        <h3>Controles</h3>
+        <div class="control"><strong>Flechas:</strong> Mover pieza</div>
+        <div class="control"><strong>Espacio:</strong> Caida rapida</div>
+        <div class="control"><strong>Q/W/E:</strong> Rotar eje X</div>
+        <div class="control"><strong>A/S/D:</strong> Rotar eje Y</div>
+        <div class="control"><strong>Z/X/C:</strong> Rotar eje Z</div>
+        <div class="control"><strong>2,4,6,8:</strong> Rotar camara</div>
+        <div class="control"><strong>5:</strong> Centrar camara</div>
+        <div class="control"><strong>+/-:</strong> Acercar/Alejar</div>
+        <div class="control"><strong>P:</strong> Pausar juego</div>
+        <div class="control"><strong>R:</strong> Reiniciar</div>
+    </div>
+    
+    <div id="message">
+        <div id="message-text"></div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module" src="game.js"></script>
+</body>
+</html>
