@@ -1,6 +1,6 @@
 # TetrisThree
 Proyecto básico de Tetris desarrollado para la materia Informática 3 en la Universidad Católica.
-Este proyecto implementa el juego clásico de Tetris usando HTML y JavaScript.
+Este proyecto implementa el juego clásico de Tetris 3D usando HTML y JavaScript.
 Trabajo Final - Facultad de la Católica.
 
 ## Lenguajes y tecnologías
